@@ -37,10 +37,12 @@
         .points {
             font-size: 30vh;
             font-weight: bold;
+            font-variant-numeric: tabular-nums;
         }
         .sets {
             font-size: 8vh;
             margin-bottom: 2vh;
+            font-variant-numeric: tabular-nums;
         }
         .reset {
             height: 10vh;
@@ -68,20 +70,6 @@
                 height: 15vw;
                 font-size: 8vw;
             }
-        }
-        .update-anim {
-            animation: updateAnim 0.3s ease-in-out;
-        }
-        @keyframes updateAnim {
-            0%, 100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.1);
-            }
-        }
-        .points, .sets {
-            transform-origin: center center;
         }
     </style>
 </head>
@@ -123,12 +111,97 @@
             updateDisplay();
         }
 
+        function getDigitWidth(elem) {
+            const temp = document.createElement('div');
+            const style = getComputedStyle(elem);
+            temp.style.visibility = 'hidden';
+            temp.style.position = 'absolute';
+            temp.style.fontSize = style.fontSize;
+            temp.style.fontWeight = style.fontWeight;
+            temp.style.fontFamily = style.fontFamily;
+            temp.innerText = '0';
+            document.body.appendChild(temp);
+            const width = temp.getBoundingClientRect().width;
+            temp.remove();
+            return width;
+        }
+
         function animateUpdate(elem, newValue) {
-            elem.innerText = newValue;
-            elem.classList.add('update-anim');
+            const oldValueStr = elem.innerText;
+            if (oldValueStr === newValue.toString()) return;
+
+            const newValueStr = newValue.toString();
+            const maxLen = Math.max(oldValueStr.length, newValueStr.length);
+            const oldPadded = oldValueStr.padStart(maxLen, ' ');
+            const newPadded = newValueStr.padStart(maxLen, ' ');
+            const style = getComputedStyle(elem);
+            const rect = elem.getBoundingClientRect();
+            const digitWidth = getDigitWidth(elem);
+            const digitHeight = rect.height;
+
+            const container = document.createElement('div');
+            container.style.display = 'flex';
+            container.style.flexDirection = 'row';
+            container.style.justifyContent = 'center';
+            container.style.alignItems = 'center';
+            container.style.height = `${digitHeight}px`;
+
+            for (let i = 0; i < maxLen; i++) {
+                const oldDigit = oldPadded[i] === ' ' ? '' : oldPadded[i];
+                const newDigit = newPadded[i] === ' ' ? '' : newPadded[i];
+
+                const digitCont = document.createElement('div');
+                digitCont.style.width = `${digitWidth}px`;
+                digitCont.style.height = `${digitHeight}px`;
+                digitCont.style.overflow = 'hidden';
+                digitCont.style.position = 'relative';
+
+                const roller = document.createElement('div');
+                roller.style.transition = 'transform 0.5s ease-in-out';
+                roller.style.transform = 'translateY(0)';
+                roller.style.display = 'flex';
+                roller.style.flexDirection = 'column';
+
+                const topSpan = document.createElement('span');
+                topSpan.innerText = oldDigit;
+                topSpan.style.height = `${digitHeight}px`;
+                topSpan.style.display = 'flex';
+                topSpan.style.alignItems = 'center';
+                topSpan.style.justifyContent = 'center';
+                topSpan.style.fontSize = style.fontSize;
+                topSpan.style.fontWeight = style.fontWeight;
+                topSpan.style.color = style.color;
+                topSpan.style.lineHeight = style.lineHeight;
+
+                const bottomSpan = document.createElement('span');
+                bottomSpan.innerText = newDigit;
+                bottomSpan.style.height = `${digitHeight}px`;
+                bottomSpan.style.display = 'flex';
+                bottomSpan.style.alignItems = 'center';
+                bottomSpan.style.justifyContent = 'center';
+                bottomSpan.style.fontSize = style.fontSize;
+                bottomSpan.style.fontWeight = style.fontWeight;
+                bottomSpan.style.color = style.color;
+                bottomSpan.style.lineHeight = style.lineHeight;
+
+                roller.appendChild(topSpan);
+                roller.appendChild(bottomSpan);
+                digitCont.appendChild(roller);
+                container.appendChild(digitCont);
+
+                if (oldDigit !== newDigit) {
+                    setTimeout(() => {
+                        roller.style.transform = `translateY(-${digitHeight}px)`;
+                    }, 10);
+                }
+            }
+
+            elem.innerHTML = '';
+            elem.appendChild(container);
+
             setTimeout(() => {
-                elem.classList.remove('update-anim');
-            }, 300);
+                elem.innerText = newValueStr;
+            }, 500);
         }
 
         function setupSwipeHandler(element, isPlayer1) {
