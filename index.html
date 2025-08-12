@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Tableau de Score</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: sans-serif;
+            overflow: hidden;
+            touch-action: none; /* Empêche le scroll par défaut pour mieux gérer les gestes */
+        }
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: row;
+        }
+        .player {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            user-select: none;
+        }
+        .left {
+            background-color: #add8e6; /* Bleu clair pour joueur 1 */
+        }
+        .right {
+            background-color: #ffb6c1; /* Rose clair pour joueur 2 */
+        }
+        .points {
+            font-size: 30vh;
+            font-weight: bold;
+        }
+        .sets {
+            font-size: 8vh;
+            margin-bottom: 2vh;
+        }
+        .reset {
+            height: 10vh;
+            background-color: #808080;
+            color: white;
+            border: none;
+            font-size: 5vh;
+            cursor: pointer;
+        }
+        .reset:active {
+            background-color: #606060;
+        }
+        @media (orientation: portrait) {
+            .container {
+                flex-direction: column;
+            }
+            .points {
+                font-size: 30vw;
+            }
+            .sets {
+                font-size: 8vw;
+                margin-bottom: 2vw;
+            }
+            .reset {
+                height: 15vw;
+                font-size: 8vw;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="player left">
+            <div class="sets" id="sets1">0</div>
+            <div class="points" id="points1">0</div>
+        </div>
+        <div class="player right">
+            <div class="sets" id="sets2">0</div>
+            <div class="points" id="points2">0</div>
+        </div>
+    </div>
+    <button class="reset" onclick="resetScores()">Réinitialiser</button>
+    <script>
+        let points1 = 0;
+        let points2 = 0;
+        let sets1 = 0;
+        let sets2 = 0;
+
+        const points1Elem = document.getElementById('points1');
+        const points2Elem = document.getElementById('points2');
+        const sets1Elem = document.getElementById('sets1');
+        const sets2Elem = document.getElementById('sets2');
+
+        function updateDisplay() {
+            points1Elem.innerText = points1;
+            points2Elem.innerText = points2;
+            sets1Elem.innerText = sets1;
+            sets2Elem.innerText = sets2;
+        }
+
+        function resetScores() {
+            points1 = 0;
+            points2 = 0;
+            sets1 = 0;
+            sets2 = 0;
+            updateDisplay();
+        }
+
+        function setupSwipeHandler(element, isPlayer1) {
+            let startX = 0;
+            let startY = 0;
+
+            element.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+            });
+
+            element.addEventListener('touchend', (e) => {
+                const endX = e.changedTouches[0].clientX;
+                const endY = e.changedTouches[0].clientY;
+                const deltaX = endX - startX;
+                const deltaY = endY - startY;
+                const threshold = 50; // Seuil pour détecter un glissement significatif
+
+                if (Math.abs(deltaY) > threshold && Math.abs(deltaX) < threshold && deltaY < 0) {
+                    // Glissement vers le haut : +1 au score principal (points)
+                    if (isPlayer1) {
+                        points1++;
+                    } else {
+                        points2++;
+                    }
+                    updateDisplay();
+                } else if (Math.abs(deltaX) > threshold && Math.abs(deltaY) < threshold && deltaX > 0) {
+                    // Glissement vers la droite : +1 au score secondaire (sets)
+                    if (isPlayer1) {
+                        sets1++;
+                    } else {
+                        sets2++;
+                    }
+                    updateDisplay();
+                }
+            });
+        }
+
+        const leftPlayer = document.querySelector('.left');
+        const rightPlayer = document.querySelector('.right');
+
+        setupSwipeHandler(leftPlayer, true);
+        setupSwipeHandler(rightPlayer, false);
+    </script>
+</body>
+</html>
