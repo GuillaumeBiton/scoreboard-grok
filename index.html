@@ -69,6 +69,20 @@
                 font-size: 8vw;
             }
         }
+        .update-anim {
+            animation: updateAnim 0.3s ease-in-out;
+        }
+        @keyframes updateAnim {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.1);
+            }
+        }
+        .points, .sets {
+            transform-origin: center center;
+        }
     </style>
 </head>
 <body>
@@ -109,6 +123,14 @@
             updateDisplay();
         }
 
+        function animateUpdate(elem, newValue) {
+            elem.innerText = newValue;
+            elem.classList.add('update-anim');
+            setTimeout(() => {
+                elem.classList.remove('update-anim');
+            }, 300);
+        }
+
         function setupSwipeHandler(element, isPlayer1) {
             let startX = 0;
             let startY = 0;
@@ -129,18 +151,20 @@
                     // Glissement vers le haut : +1 au score principal (points)
                     if (isPlayer1) {
                         points1++;
+                        animateUpdate(points1Elem, points1);
                     } else {
                         points2++;
+                        animateUpdate(points2Elem, points2);
                     }
-                    updateDisplay();
                 } else if (Math.abs(deltaX) > threshold && Math.abs(deltaY) < threshold && deltaX > 0) {
                     // Glissement vers la droite : +1 au score secondaire (sets)
                     if (isPlayer1) {
                         sets1++;
+                        animateUpdate(sets1Elem, sets1);
                     } else {
                         sets2++;
+                        animateUpdate(sets2Elem, sets2);
                     }
-                    updateDisplay();
                 }
             });
         }
